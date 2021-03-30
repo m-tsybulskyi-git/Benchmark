@@ -81,7 +81,7 @@ class BenchmarkTest00003 : HttpServlet() {
         response.contentType = "text/html;charset=UTF-8"
         val theCookies = request.cookies
         var param = "noCookieValueSupplied"
-        if (theCookies != null) {
+        theCookies.let {
             for (theCookie in theCookies) {
                 if (theCookie.name == "BenchmarkTest00003") {
                     param = URLDecoder.decode(theCookie.value, "UTF-8")
@@ -89,10 +89,11 @@ class BenchmarkTest00003 : HttpServlet() {
                 }
             }
         }
+
         try {
-            val benchmarkprops = Properties()
-            benchmarkprops.load(this.javaClass.classLoader.getResourceAsStream("benchmark.properties"))
-            val algorithm = benchmarkprops.getProperty("hashAlg1", "SHA512")
+            val benchmarkProps = Properties()
+            benchmarkProps.load(this.javaClass.classLoader.getResourceAsStream("benchmark.properties"))
+            val algorithm = benchmarkProps.getProperty("hashAlg1", "SHA512")
             val md = MessageDigest.getInstance(algorithm)
             var input: ByteArray? = byteArrayOf('?'.toByte())
             val inputParam: Any = param
@@ -106,7 +107,7 @@ class BenchmarkTest00003 : HttpServlet() {
                     )
                     return
                 }
-                input = Arrays.copyOf(strInput, i)
+                input = strInput.copyOf(i)
             }
             md.update(input)
             val result = md.digest()
@@ -116,9 +117,9 @@ class BenchmarkTest00003 : HttpServlet() {
             val fw = FileWriter(fileTarget, true) //the true will append the new data
             fw.write(
                 """
-    hash_value=${ESAPI.encoder().encodeForBase64(result, true)}
-    
-    """.trimIndent()
+                hash_value=${ESAPI.encoder().encodeForBase64(result, true)}
+                
+                """.trimIndent()
             )
             fw.close()
             response.writer.println(

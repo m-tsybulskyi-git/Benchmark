@@ -86,7 +86,7 @@ class BenchmarkTest00001 : HttpServlet() {
         response.contentType = "text/html;charset=UTF-8"
         val theCookies = request.cookies
         var param = "noCookieValueSupplied"
-        if (theCookies != null) {
+        theCookies.let {
             for (theCookie in theCookies) {
                 if (theCookie.name == "BenchmarkTest00001") {
                     param = URLDecoder.decode(theCookie.value, "UTF-8")
@@ -94,35 +94,26 @@ class BenchmarkTest00001 : HttpServlet() {
                 }
             }
         }
-        var fileName: String? = null
-        var fis: FileInputStream? = null
+        val fileName = Utils.TESTFILES_DIR + param
+        val fis = FileInputStream(File(fileName))
         try {
-            fileName = Utils.TESTFILES_DIR + param
-            fis = FileInputStream(File(fileName))
-            val b = ByteArray(1000)
-            val size = fis.read(b)
-            response.writer.println(
-                """
+            fis.use {
+                val b = ByteArray(1000)
+                val size = fis.read(b)
+                response.writer.println(
+                    """
                     The beginning of file: '${ESAPI.encoder().encodeForHTML(fileName)}' is:
                     
                     ${ESAPI.encoder().encodeForHTML(String(b, 0, size))}
                     """.trimIndent()
-            )
+                )
+            }
         } catch (e: Exception) {
             println("Couldn't open FileInputStream on file: '$fileName'")
             response.writer.println(
                 "Problem getting FileInputStream: "
                         + ESAPI.encoder().encodeForHTML(e.message)
             )
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close()
-                    fis = null
-                } catch (e: Exception) {
-                    // we tried...
-                }
-            }
         }
     }
 

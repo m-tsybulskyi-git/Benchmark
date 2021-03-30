@@ -86,7 +86,7 @@ class BenchmarkTest00002 : HttpServlet() {
         response.contentType = "text/html;charset=UTF-8"
         val theCookies = request.cookies
         var param = "noCookieValueSupplied"
-        if (theCookies != null) {
+        theCookies.let {
             for (theCookie in theCookies) {
                 if (theCookie.name == "BenchmarkTest00002") {
                     param = URLDecoder.decode(theCookie.value, "UTF-8")
@@ -94,25 +94,17 @@ class BenchmarkTest00002 : HttpServlet() {
                 }
             }
         }
-        var fileName: String? = null
-        var fos: FileOutputStream? = null
-        try {
-            fileName = Utils.TESTFILES_DIR + param
-            fos = FileOutputStream(fileName, false)
-            response.writer.println(
-                "Now ready to write to file: " + ESAPI.encoder().encodeForHTML(fileName)
-            )
-        } catch (e: Exception) {
-            println("Couldn't open FileOutputStream on file: '$fileName'")
-            //			System.out.println("File exception caught and swallowed: " + e.getMessage());
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close()
-                    fos = null
-                } catch (e: Exception) {
-                    // we tried...
-                }
+        val fileName = Utils.TESTFILES_DIR + param
+        val fos = FileOutputStream(fileName, false)
+
+        fos.use {
+            try {
+                response.writer.println(
+                    "Now ready to write to file: " +
+                            ESAPI.encoder().encodeForHTML(fileName)
+                )
+            } catch (e: Exception) {
+                println("Couldn't open FileOutputStream on file: '$fileName'")
             }
         }
     }
